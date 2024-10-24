@@ -37,6 +37,9 @@ discord.on(Events.ClientReady, async () => {
 });
 
 discord.on(Events.InteractionCreate, async (interaction) => {
+  // ignore interactions from other guilds not specified in the .env file
+  if (interaction.guild.id !== process.env.DISCORD_GUILD_ID) return;
+
   if (interaction.isCommand()) {
     try {
       const commandFile = await import(
