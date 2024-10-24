@@ -31,7 +31,7 @@ discord.on(Events.ClientReady, async () => {
     activities: [
       {
         type: ActivityType.Listening,
-        name: "to my parents argue",
+        name: "my parents argue",
       },
     ],
   });
