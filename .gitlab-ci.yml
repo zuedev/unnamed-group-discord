@@ -34,3 +34,6 @@ build_bot:
     changes:
       - .gitlab-ci.yml
       - bot/**/*
+
+include:
+  - template: Jobs/Code-Quality.gitlab-ci.yml
