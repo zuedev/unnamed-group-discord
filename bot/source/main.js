@@ -8,6 +8,7 @@ import {
 } from "discord.js";
 import registerSlashCommands from "./library/registerSlashCommands.js";
 import { upsertOne } from "./controllers/mongodb.js";
+import { chat } from "./controllers/openai.js";
 
 const discord = new Client({
   intents: Object.values(GatewayIntentBits),
@@ -66,6 +67,15 @@ discord.on(Events.MessageCreate, async (message) => {
   if (message.guild.id !== process.env.DISCORD_GUILD_ID) return;
 
   if (message.author.bot) return;
+
+  // does the message start with a mention of the bot?
+  if (message.content.startsWith(`<@${discord.user.id}>`))
+    await message.reply({
+      content: await chat({
+        model: "gpt-4o-mini",
+        message: message.content.replace(`<@${discord.user.id}>`, "").trim(),
+      }),
+    });
 
   // increment the message count for the author
   await upsertOne(
