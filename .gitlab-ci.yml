@@ -9,6 +9,10 @@ test_bot:
     - cd ./bot/
     - npm install
     - npm test
+  only:
+    changes:
+      - .gitlab-ci.yml
+      - bot/**/*
 
 build_bot:
   stage: build
@@ -26,3 +30,7 @@ build_bot:
         docker tag "$DOCKER_IMAGE_NAME" "$CI_REGISTRY_IMAGE:latest"
         docker push "$CI_REGISTRY_IMAGE:latest"
       fi
+  only:
+    changes:
+      - .gitlab-ci.yml
+      - bot/**/*
