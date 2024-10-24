@@ -25,6 +25,15 @@ discord.on(Events.ClientReady, async () => {
   await registerSlashCommands(discord);
 
   console.log("Bot is ready!");
+
+  discord.user.setPresence({
+    activities: [
+      {
+        type: ActivityType.Listening,
+        name: "to my parents argue",
+      },
+    ],
+  });
 });
 
 discord.on(Events.InteractionCreate, async (interaction) => {
