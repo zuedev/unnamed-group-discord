@@ -1,3 +1,15 @@
+stages:
+  - test
+  - build
+
+test_bot:
+  stage: test
+  image: node:22
+  script:
+    - cd ./bot/
+    - npm install
+    - npm test
+
 build_bot:
   stage: build
   image: docker:cli

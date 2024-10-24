@@ -5,6 +5,9 @@ export default async (client) => {
   const commands = [];
 
   for (const file of readdirSync("./source/commands")) {
+    // ignore test files
+    if (file.includes(".test.")) continue;
+
     const { default: command } = await import(`../commands/${file}`);
     commands.push(command.data);
   }
