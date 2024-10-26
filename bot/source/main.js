@@ -69,13 +69,23 @@ discord.on(Events.MessageCreate, async (message) => {
   if (message.author.bot) return;
 
   // does the message start with a mention of the bot?
-  if (message.content.startsWith(`<@${discord.user.id}>`))
+  if (message.content.startsWith(`<@${discord.user.id}>`)) {
     await message.reply({
       content: await chat({
         model: "gpt-4o-mini",
         message: message.content.replace(`<@${discord.user.id}>`, "").trim(),
       }),
     });
+  } else {
+    // random chance to reply to any message
+    if (Math.random() < 0.1)
+      await message.reply({
+        content: await chat({
+          message: message.content,
+          image_url: message.attachments.first()?.url,
+        }),
+      });
+  }
 
   // increment the message count for the author
   await upsertOne(
