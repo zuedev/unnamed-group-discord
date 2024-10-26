@@ -1,6 +1,7 @@
 stages:
   - test
   - build
+  - deploy
 
 test_bot:
   stage: test
