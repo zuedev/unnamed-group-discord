@@ -78,7 +78,7 @@ discord.on(Events.MessageCreate, async (message) => {
     });
   } else {
     // random chance to reply to any message
-    if (Math.random() < 0.1)
+    if (Math.random() < 0.01)
       await message.reply({
         content: await chat({
           message: message.content,
