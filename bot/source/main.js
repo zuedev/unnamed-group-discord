@@ -9,6 +9,7 @@ import {
 import registerSlashCommands from "./library/registerSlashCommands.js";
 import { upsertOne } from "./controllers/mongodb.js";
 import { chat } from "./controllers/openai.js";
+import { execSync } from "child_process";
 
 const discord = new Client({
   intents: Object.values(GatewayIntentBits),
@@ -36,11 +37,41 @@ discord.on(Events.ClientReady, async () => {
       },
     ],
   });
+
+  // send a message to the application owner
+  let { owner } = await discord.application.fetch();
+
+  // is the owner a team? if so, get the owner of the team instead
+  if (owner.members) owner = owner.owner;
+
+  // get git hash
+  const gitHash = execSync("git rev-parse --short HEAD").toString().trim();
+
+  let readyMessage = `# Bot Ready\n\n`;
+  readyMessage += "```json\n";
+  readyMessage += JSON.stringify(
+    {
+      discordApplicationId: discord.application.id,
+      discordGuildId: process.env.DISCORD_GUILD_ID,
+      discordGuildName: discord.guilds.cache.get(process.env.DISCORD_GUILD_ID)
+        .name,
+      gitCommitHashShort: gitHash,
+      ownerId: owner.id,
+      ownerTag: owner.user.tag,
+    },
+    null,
+    2
+  );
+  readyMessage += "\n```";
+
+  await owner.user.send({
+    content: readyMessage,
+  });
 });
 
 discord.on(Events.InteractionCreate, async (interaction) => {
   // ignore interactions from other guilds not specified in the .env file
-  if (interaction.guild.id !== process.env.DISCORD_GUILD_ID) return;
+  if (interaction.guild?.id !== process.env.DISCORD_GUILD_ID) return;
 
   if (interaction.isCommand()) {
     try {
@@ -64,7 +95,7 @@ discord.on(Events.InteractionCreate, async (interaction) => {
 
 discord.on(Events.MessageCreate, async (message) => {
   // ignore events from other guilds not specified in the .env file
-  if (message.guild.id !== process.env.DISCORD_GUILD_ID) return;
+  if (message.guild?.id !== process.env.DISCORD_GUILD_ID) return;
 
   if (message.author.bot) return;
 
@@ -115,7 +146,7 @@ discord.on(Events.MessageDelete, async (message) => {
     );
 
   // ignore events from other guilds not specified in the .env file
-  if (message.guild.id !== process.env.DISCORD_GUILD_ID) return;
+  if (message.guild?.id !== process.env.DISCORD_GUILD_ID) return;
 
   if (message.author.bot) return;
 
