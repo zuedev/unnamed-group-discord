@@ -72,8 +72,8 @@ discord.on(Events.MessageCreate, async (message) => {
   if (message.content.startsWith(`<@${discord.user.id}>`)) {
     await message.reply({
       content: await chat({
-        model: "gpt-4o-mini",
         message: message.content.replace(`<@${discord.user.id}>`, "").trim(),
+        image_url: message.attachments.first()?.url,
       }),
     });
   } else {
