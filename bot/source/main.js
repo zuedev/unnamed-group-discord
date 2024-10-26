@@ -53,9 +53,6 @@ discord.on(Events.ClientReady, async () => {
   // is the owner a team? if so, get the owner of the team instead
   if (owner.members) owner = owner.owner;
 
-  // get git hash
-  const gitHash = execSync("git rev-parse --short HEAD").toString().trim();
-
   let readyMessage = `# Bot Ready\n\n`;
   readyMessage += "```json\n";
   readyMessage += JSON.stringify(
@@ -64,7 +61,6 @@ discord.on(Events.ClientReady, async () => {
       discordGuildId: process.env.DISCORD_GUILD_ID,
       discordGuildName: discord.guilds.cache.get(process.env.DISCORD_GUILD_ID)
         .name,
-      gitCommitHashShort: gitHash,
       ownerId: owner.id,
       ownerTag: owner.user.tag,
     },
