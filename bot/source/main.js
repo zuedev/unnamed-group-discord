@@ -9,7 +9,6 @@ import {
 import registerSlashCommands from "./library/registerSlashCommands.js";
 import { upsertOne } from "./controllers/mongodb.js";
 import { chat } from "./controllers/openai.js";
-import { execSync } from "child_process";
 import * as Sentry from "@sentry/node";
 import { nodeProfilingIntegration } from "@sentry/profiling-node";
 
