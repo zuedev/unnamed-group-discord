@@ -11,6 +11,7 @@ import { upsertOne } from "./controllers/mongodb.js";
 import { chat } from "./controllers/openai.js";
 import * as Sentry from "@sentry/node";
 import { nodeProfilingIntegration } from "@sentry/profiling-node";
+import { flag } from "./controllers/unleash.js";
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
@@ -112,8 +113,7 @@ discord.on(Events.MessageCreate, async (message) => {
       }),
     });
   } else {
-    // random chance to reply to any message
-    if (Math.random() < 0.01)
+    if (flag("chatty") || Math.random() < 0.01)
       await message.reply({
         content: await chat({
           message: message.content,

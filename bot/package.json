@@ -5,7 +5,8 @@
     "discord.js": "^14.16.3",
     "dotenv": "^16.4.5",
     "mongodb": "^6.10.0",
-    "openai": "^4.68.4"
+    "openai": "^4.68.4",
+    "unleash-client": "^6.1.1"
   },
   "devDependencies": {
     "jest": "^29.7.0"
