@@ -5,6 +5,7 @@ import {
   Partials,
   ActivityType,
   Events,
+  MessageType,
 } from "discord.js";
 import registerSlashCommands from "./library/registerSlashCommands.js";
 import { upsertOne } from "./controllers/mongodb.js";
@@ -104,22 +105,30 @@ discord.on(Events.MessageCreate, async (message) => {
 
   if (message.author.bot) return;
 
-  // does the message start with a mention of the bot?
-  if (message.content.startsWith(`<@${discord.user.id}>`)) {
+  if (message.type === MessageType.Reply)
+    message._replyMessage = await message.channel.messages.fetch(
+      message.reference.messageId
+    );
+
+  if (
+    message.content.startsWith(`<@${discord.user.id}>`) ||
+    flag("chatty") ||
+    Math.random() < 0.01 ||
+    message._replyMessage?.author.id === discord.user.id
+  ) {
+    let replyContent;
+
+    replyContent = message.content;
+
+    if (message.content.startsWith(`<@${discord.user.id}>`))
+      replyContent = replyContent.replace(`<@${discord.user.id}>`, "");
+
     await message.reply({
       content: await chat({
-        message: message.content.replace(`<@${discord.user.id}>`, "").trim(),
+        message: replyContent,
         image_url: message.attachments.first()?.url,
       }),
     });
-  } else {
-    if (flag("chatty") || Math.random() < 0.01)
-      await message.reply({
-        content: await chat({
-          message: message.content,
-          image_url: message.attachments.first()?.url,
-        }),
-      });
   }
 
   // increment the message count for the author
