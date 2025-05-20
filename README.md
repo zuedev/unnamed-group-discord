@@ -1,4 +1,4 @@
-<img src=".gitea/discord.jpg" width="200px"/>
+<img src=".gitea/discord.jpg" width="100px"/>
 
 # Unnamed Group's Discord
 
