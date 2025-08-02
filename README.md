@@ -6,10 +6,4 @@ This repository contains everything related to the Unnamed Group's Discord serve
 
 ## Development
 
-This repository has mirrors!
-
-The original repository is here: https://gitlab.sovereign.zue.dev/unnamed-group/discord
-
-Here is a list of official mirrors:
-
-- https://github.com/zuedev/unnamed-group-discord
+**This project is mirrored!** Please do not push directly to this repository. Instead, format your changes using [`git format-patch`](https://git-scm.com/docs/git-format-patch) and send them to me via [email](mailto:git@zue.dev) or [Discord](https://discord.com/users/723361818940276736).
