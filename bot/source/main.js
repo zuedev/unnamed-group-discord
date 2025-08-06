@@ -6,6 +6,8 @@ import {
   ActivityType,
   Events,
   MessageType,
+  PermissionFlagsBits,
+  ChannelType,
 } from "discord.js";
 import registerSlashCommands from "./library/registerSlashCommands.js";
 import { upsertOne } from "./controllers/mongodb.js";
@@ -181,6 +183,58 @@ discord.on(Events.MessageDelete, async (message) => {
   console.log(
     `${message.author.tag}'s message in "${message.guild.name}'s" #${message.channel.name} channel was deleted. Decremented message count by 1 in the database.`
   );
+});
+
+discord.on(Events.VoiceStateUpdate, async (oldState, newState) => {
+  // ignore events from other guilds not specified in the .env file
+  if (newState.guild.id !== process.env.DISCORD_GUILD_ID) return;
+
+  // if the user left a voice channel, delete it if it was created by them
+  if (oldState.channel && !newState.channel) {
+    if (oldState.channel.name.endsWith("'s Voice Channel")) {
+      await oldState.channel.delete();
+    }
+  }
+
+  // if the user joined the "create voice channel" channel, create a new voice channel for them
+  if (
+    !oldState.channel &&
+    newState.channel &&
+    newState.channel.name === "create voice channel"
+  ) {
+    // check if the user already has a voice channel
+    const existingChannel = newState.guild.channels.cache.find(
+      (channel) =>
+        channel.type === ChannelType.GuildVoice &&
+        channel.name === `${newState.member.user.username}'s Voice Channel` &&
+        channel.parentId === newState.channel.parentId
+    );
+
+    // if the user already has a voice channel, move them to it
+    if (existingChannel) {
+      await newState.member.voice.setChannel(existingChannel);
+      return;
+    }
+
+    // if the user doesn't have a voice channel, create a new one
+    const channel = await newState.guild.channels.create({
+      name: `${newState.member.user.username}'s Voice Channel`,
+      type: ChannelType.GuildVoice,
+      parent: newState.channel.parent,
+      permissionOverwrites: [
+        {
+          id: newState.guild.id,
+          deny: [PermissionFlagsBits.Connect],
+        },
+        {
+          id: newState.member.id,
+          allow: [PermissionFlagsBits.Connect],
+        },
+      ],
+    });
+
+    await newState.member.voice.setChannel(channel);
+  }
 });
 
 discord.login(process.env.DISCORD_BOT_TOKEN);
