@@ -37,31 +37,24 @@ discord.on(Events.ClientReady, async () => {
     ],
   });
 
-  // send a message to the application owner
-  let { owner } = await discord.application.fetch();
-
-  // is the owner a team? if so, get the owner of the team instead
-  if (owner.members) owner = owner.owner;
-
-  let readyMessage = `# Bot Ready\n\n`;
-  readyMessage += "```json\n";
-  readyMessage += JSON.stringify(
-    {
-      discordApplicationId: discord.application.id,
-      discordGuildId: process.env.DISCORD_GUILD_ID,
-      discordGuildName: discord.guilds.cache.get(process.env.DISCORD_GUILD_ID)
-        .name,
-      ownerId: owner.id,
-      ownerTag: owner.user.tag,
-    },
-    null,
-    2
-  );
-  readyMessage += "\n```";
-
-  await owner.user.send({
-    content: readyMessage,
-  });
+  // every 5 minutes...
+  setInterval(() => {
+    // find empty user-created voice channels and delete them
+    discord.guilds.cache.forEach((guild) => {
+      guild.channels.cache.forEach((channel) => {
+        if (
+          channel.type === ChannelType.GuildVoice &&
+          channel.name.endsWith("'s Voice Channel") &&
+          channel.members.size === 0
+        ) {
+          console.log(
+            `Deleting empty voice channel: ${channel.name} in guild: ${guild.name}`
+          );
+          channel.delete().catch(console.error);
+        }
+      });
+    });
+  }, 10 * 1000);
 });
 
 discord.on(Events.InteractionCreate, async (interaction) => {
@@ -92,51 +85,75 @@ discord.on(Events.VoiceStateUpdate, async (oldState, newState) => {
   // ignore events from other guilds not specified in the .env file
   if (newState.guild.id !== process.env.DISCORD_GUILD_ID) return;
 
-  // if the user left a voice channel, delete it if it was created by them
-  if (oldState.channel && !newState.channel) {
-    if (oldState.channel.name.endsWith("'s Voice Channel")) {
-      await oldState.channel.delete();
-    }
-  }
+  console.log(`Voice state updated:`, {
+    user: {
+      id: newState.member.id,
+      username: newState.member.user.username,
+      discriminator: newState.member.user.discriminator,
+    },
+    oldChannel: {
+      id: oldState.channelId,
+      name: oldState.channel?.name,
+    },
+    newChannel: {
+      id: newState.channelId,
+      name: newState.channel?.name,
+    },
+  });
 
-  // if the user joined the "create voice channel" channel, create a new voice channel for them
-  if (
-    !oldState.channel &&
-    newState.channel &&
-    newState.channel.name === "create voice channel"
-  ) {
-    // check if the user already has a voice channel
-    const existingChannel = newState.guild.channels.cache.find(
-      (channel) =>
-        channel.type === ChannelType.GuildVoice &&
-        channel.name === `${newState.member.user.username}'s Voice Channel` &&
-        channel.parentId === newState.channel.parentId
+  // has the user joined the "create voice channel" voice channel?
+  if (newState.channel?.name === "create voice channel") {
+    console.log(
+      `User ${newState.member.user.username} has joined the "create voice channel" voice channel. Creating a new voice channel...`
     );
 
-    // if the user already has a voice channel, move them to it
-    if (existingChannel) {
-      await newState.member.voice.setChannel(existingChannel);
-      return;
+    // does the user already have a voice channel?
+    if (
+      newState.guild.channels.cache.some((channel) => {
+        return (
+          channel.type === ChannelType.GuildVoice &&
+          channel.name === `${newState.member.user.username}'s Voice Channel`
+        );
+      })
+    ) {
+      console.log(
+        `User ${newState.member.user.username} already has a voice channel. Not creating a new one.`
+      );
+    } else {
+      console.log(
+        `User ${newState.member.user.username} does not have a voice channel. Creating a new one.`
+      );
+
+      const guild = newState.guild;
+      const newChannel = await guild.channels.create({
+        name: `${newState.member.user.username}'s Voice Channel`,
+        type: ChannelType.GuildVoice,
+        parent: newState.channel.parentId, // use the same parent as the "create voice channel" channel
+        permissionOverwrites: [
+          {
+            id: guild.roles.everyone.id,
+            deny: [PermissionFlagsBits.Connect, PermissionFlagsBits.Speak],
+          },
+        ],
+      });
+
+      console.log(`Created new voice channel: ${newChannel.name}`);
     }
 
-    // if the user doesn't have a voice channel, create a new one
-    const channel = await newState.guild.channels.create({
-      name: `${newState.member.user.username}'s Voice Channel`,
-      type: ChannelType.GuildVoice,
-      parent: newState.channel.parent,
-      permissionOverwrites: [
-        {
-          id: newState.guild.id,
-          deny: [PermissionFlagsBits.Connect],
-        },
-        {
-          id: newState.member.id,
-          allow: [PermissionFlagsBits.Connect],
-        },
-      ],
+    // get the id of the new (or not new) voice channel
+    const voiceChannelId = newState.guild.channels.cache.find((channel) => {
+      return (
+        channel.type === ChannelType.GuildVoice &&
+        channel.name === `${newState.member.user.username}'s Voice Channel`
+      );
     });
 
-    await newState.member.voice.setChannel(channel);
+    // move the user to the new voice channel
+    await newState.member.voice.setChannel(voiceChannelId);
+
+    console.log(
+      `Moved user ${newState.member.user.username} to their voice channel.`
+    );
   }
 });
 
