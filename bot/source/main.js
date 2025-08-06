@@ -132,7 +132,7 @@ discord.on(Events.VoiceStateUpdate, async (oldState, newState) => {
         permissionOverwrites: [
           {
             id: guild.roles.everyone.id,
-            deny: [PermissionFlagsBits.Connect, PermissionFlagsBits.Speak],
+            allow: [PermissionFlagsBits.Connect, PermissionFlagsBits.Speak],
           },
         ],
       });
