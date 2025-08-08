@@ -1,4 +1,3 @@
-import "dotenv/config";
 import {
   Client,
   GatewayIntentBits,
@@ -8,7 +7,6 @@ import {
   PermissionFlagsBits,
   ChannelType,
 } from "discord.js";
-import registerSlashCommands from "./library/registerSlashCommands.js";
 
 const discord = new Client({
   intents: Object.values(GatewayIntentBits),
@@ -55,30 +53,6 @@ discord.on(Events.ClientReady, async () => {
       });
     });
   }, 10 * 1000);
-});
-
-discord.on(Events.InteractionCreate, async (interaction) => {
-  // ignore interactions from other guilds not specified in the .env file
-  if (interaction.guild?.id !== process.env.DISCORD_GUILD_ID) return;
-
-  if (interaction.isCommand()) {
-    try {
-      const commandFile = await import(
-        `./commands/${interaction.commandName}.js`
-      );
-
-      await commandFile.default.execute({
-        interaction,
-      });
-    } catch (error) {
-      console.error(error);
-
-      await interaction.reply({
-        content: "There was an error while executing this command!",
-        ephemeral: true,
-      });
-    }
-  }
 });
 
 discord.on(Events.VoiceStateUpdate, async (oldState, newState) => {

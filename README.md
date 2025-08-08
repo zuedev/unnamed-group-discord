@@ -1,8 +1,6 @@
-<img src=".gitea/discord.jpg" width="100px"/>
+# Unnamed Group's Discord Bot
 
-# Unnamed Group's Discord
-
-This repository contains everything related to the Unnamed Group's Discord server, including the rules, configuration, and official bot.
+This repository contains the source code for the official bot for the Unnamed Group's Discord server. The bot is written in JavaScript using the [discord.js](https://discord.js.org) library.
 
 ## Development
 
