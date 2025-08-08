@@ -6,6 +6,7 @@ import {
   Events,
   PermissionFlagsBits,
   ChannelType,
+  Routes,
 } from "discord.js";
 
 const discord = new Client({
@@ -22,10 +23,6 @@ const discord = new Client({
 });
 
 discord.on(Events.ClientReady, async () => {
-  await registerSlashCommands(discord);
-
-  console.log("Bot is ready!");
-
   discord.user.setPresence({
     activities: [
       {
@@ -53,6 +50,31 @@ discord.on(Events.ClientReady, async () => {
       });
     });
   }, 10 * 1000);
+
+  const commands = {
+    global: [],
+    guild: [],
+  };
+
+  // register guild commands
+  await discord.rest.put(
+    Routes.applicationGuildCommands(
+      discord.application.id,
+      process.env.DISCORD_GUILD_ID
+    ),
+    {
+      body: commands.guild,
+    }
+  );
+
+  // register global commands
+  await discord.rest.put(Routes.applicationCommands(discord.application.id), {
+    body: commands.global,
+  });
+
+  console.log(
+    `Bot is ready! Logged in as: ${discord.user.tag} (${discord.user.id})`
+  );
 });
 
 discord.on(Events.VoiceStateUpdate, async (oldState, newState) => {
